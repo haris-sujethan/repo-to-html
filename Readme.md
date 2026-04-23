@@ -14,11 +14,14 @@ This is the lightweight version (<350 lines). If you prefer a pip-installable CL
 
 ```bash
 python repo-to-html.py <repo_dir>
+```
 
-# Custom output path
+#### Custom output path:
+```bash
 python repo-to-html.py <repo_dir> -o output.html
-
-# Custom title
+```
+#### Custom title:
+```bash
 python repo-to-html.py <repo_dir> -t "My Project"
 ```
 
