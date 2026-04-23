@@ -6,9 +6,7 @@ Convert your repository into a single HTML document that you can save as a PDF. 
 - **Safe for enterprise** — no network calls, runs offline, I use this at work
 - **Flexible exclusions** — ignores build artifacts, lock files, binary files, and anything in your `.gitignore` automatically
 
-This is the lightweight version (<350 lines). If you prefer a pip-installable CLI tool with more features I also built:
-
-**[repo-2-pdf](https://github.com/haris-sujethan/repo-2-pdf)**
+This is the lightweight version (<350 lines). If you prefer a pip-installable CLI tool with more features I also built: **[repo-2-pdf](https://github.com/haris-sujethan/repo-2-pdf)**
 
 ## How to use
 
