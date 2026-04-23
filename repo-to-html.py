@@ -1,25 +1,9 @@
-#!/usr/bin/env python3
-"""
-repo-to-html.py — Convert a repository to a single HTML file, optimised for PDF export.
-
-Usage:
-    python repo-to-html.py <repo_dir>
-    python repo-to-html.py qr-activedirectory-sapi
-    python repo-to-html.py qr-activedirectory-sapi -o output.html
-
-No external dependencies. Fully offline.
-"""
-
 import argparse
 import datetime
 import fnmatch
 import html
 import os
 import sys
-
-# ---------------------------------------------------------------------------
-# Exclusions
-# ---------------------------------------------------------------------------
 
 EXCLUDED_EXTENSIONS = {
     ".pyc", ".class", ".o", ".exe", ".dll", ".so", ".dylib",
@@ -51,14 +35,7 @@ EXCLUDED_FILES = {
 
 MAX_FILE_SIZE_KB = 500
 
-# ---------------------------------------------------------------------------
-# .gitignore support
-# ---------------------------------------------------------------------------
-
 def load_gitignore(repo_dir: str) -> list:
-    """
-    Parse .gitignore and return a list of (pattern, is_dir_only, is_negation) tuples.
-    """
     gitignore_path = os.path.join(repo_dir, ".gitignore")
     patterns = []
     if not os.path.isfile(gitignore_path):
@@ -87,12 +64,7 @@ def load_gitignore(repo_dir: str) -> list:
     print(f"  .gitignore loaded ({len(patterns)} patterns)", file=sys.stderr)
     return patterns
 
-
 def is_gitignored(rel_path: str, patterns: list, is_dir: bool = False) -> bool:
-    """
-    Check whether a relative path matches any gitignore pattern.
-    Returns True if the path should be excluded.
-    """
     if not patterns:
         return False
 
@@ -113,10 +85,6 @@ def is_gitignored(rel_path: str, patterns: list, is_dir: bool = False) -> bool:
             ignored = not negation
 
     return ignored
-
-# ---------------------------------------------------------------------------
-# HTML template — based on the original style
-# ---------------------------------------------------------------------------
 
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
@@ -194,13 +162,6 @@ HTML_TEMPLATE = """\
             border-top: none;
             font-family: Consolas, Monaco, "Andale Mono", monospace;
             font-size: 13px;
-
-            /* ── Long-line fix ──────────────────────────────────────────
-               pre-wrap  : preserves indentation & newlines, but DOES wrap
-               anywhere  : breaks at any character when a line won't fit
-                           (does NOT insert soft hyphens into identifiers)
-               hyphens   : none — belt-and-braces, no auto-hyphenation
-            ────────────────────────────────────────────────────────── */
             white-space: pre-wrap;
             overflow-wrap: anywhere;
             word-break: normal;
@@ -214,8 +175,6 @@ HTML_TEMPLATE = """\
             color: #7f8c8d;
             font-size: 0.9em;
         }}
-
-        /* ── Print ─────────────────────────────────────────────────── */
         @media print {{
             body {{
                 padding: 0;
@@ -259,37 +218,10 @@ HTML_TEMPLATE = """\
 </html>
 """
 
-# ---------------------------------------------------------------------------
-# PDF rendering fixes
-# ---------------------------------------------------------------------------
-
 def add_break_hints(text: str) -> str:
-    """
-    Insert invisible Unicode hints so Chrome's PDF engine breaks lines at
-    safe positions rather than at hyphens (which it silently consumes).
-
-    U+200B  ZERO-WIDTH SPACE  — inserted after every hyphen, giving Chrome
-            a preferred break point just AFTER the '-' so the character
-            stays on the line above rather than being consumed as a
-            line-break glyph.
-
-    U+2060  WORD JOINER       — inserted between '#' and '[' to prevent
-            MuleSoft/DataWeave expression syntax (#[...]) from being split
-            across lines.
-
-    Both characters are invisible and are stripped by PDF text extractors,
-    so an LLM reading the extracted text sees clean, correct content.
-    """
-    # Give Chrome a break point after every hyphen (not at it)
     out = text.replace("-", "-\u200b")
-    # Protect #[ expressions from being split
     out = out.replace("#[", "#\u2060[")
     return out
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def should_include(file_path: str, repo_dir: str, gitignore: list) -> bool:
     name = os.path.basename(file_path)
@@ -309,19 +241,16 @@ def should_include(file_path: str, repo_dir: str, gitignore: list) -> bool:
     rel_fwd = rel.replace("\\", "/")
     parts = rel_fwd.split("/")
 
-    # Hard-coded folder exclusions
     for part in parts[:-1]:
         if part in EXCLUDED_FOLDERS:
             return False
 
-    # .gitignore exclusions — check each path segment
     for i, part in enumerate(parts):
         segment_path = "/".join(parts[: i + 1])
         is_dir = i < len(parts) - 1
         if is_gitignored(segment_path, gitignore, is_dir=is_dir):
             return False
 
-    # Size guard
     try:
         if os.path.getsize(file_path) / 1024 > MAX_FILE_SIZE_KB:
             print(f"  skip  (>{MAX_FILE_SIZE_KB} KB)  {rel_fwd}", file=sys.stderr)
@@ -363,8 +292,6 @@ def build_html(repo_dir: str, title: str) -> str:
                 f'<li><a href="#{fid}">{html.escape(rel)}</a></li>'
             )
 
-            # add_break_hints must run before html.escape so it operates on
-            # raw Unicode characters, not on HTML entities.
             hinted = add_break_hints(raw)
 
             block_parts.append(
@@ -381,11 +308,6 @@ def build_html(repo_dir: str, title: str) -> str:
         toc_items="\n                ".join(toc_parts),
         file_blocks="\n\n        ".join(block_parts),
     )
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(
@@ -419,7 +341,6 @@ def main():
         fh.write(html_content)
 
     print(f"\nDone → {output}", file=sys.stderr)
-
 
 if __name__ == "__main__":
     main()
