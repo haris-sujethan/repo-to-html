@@ -3,7 +3,7 @@
 Convert your repository into a single HTML document that you can save as a PDF. Main purpose is to give your LLMs full context of your project. 
 
 - **No external libraries** — Python standard library, nothing to install
-- **Safe for enterprise** — no network calls, runs offline, I use this at work
+- **Safe for enterprise** — no network calls, runs offline
 - **Flexible exclusions** — ignores build artifacts, lock files, binary files, and anything in your `.gitignore` automatically
 
 This is the lightweight version (<350 lines). If you prefer a pip-installable CLI tool with more features I also built: **[repo-2-pdf](https://github.com/haris-sujethan/repo-2-pdf)**
